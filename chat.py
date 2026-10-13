@@ -31,6 +31,16 @@ def load_trained_model(checkpoint_path="model.pt"):
     
     ckpt = torch.load(checkpoint_path, map_location=device)
     
+    # Auto-remap Colab / NanoGPT keys if present
+    if 'tok_emb.weight' in ckpt:
+        ckpt['token_embedding_table.weight'] = ckpt.pop('tok_emb.weight')
+    if 'pos_emb.weight' in ckpt:
+        ckpt['position_embedding_table.weight'] = ckpt.pop('pos_emb.weight')
+    if 'head.weight' in ckpt:
+        ckpt['lm_head.weight'] = ckpt.pop('head.weight')
+    if 'head.bias' in ckpt:
+        ckpt['lm_head.bias'] = ckpt.pop('head.bias')
+
     # Auto-detect dimensions from checkpoint tensors
     v_size, embd_dim = ckpt['token_embedding_table.weight'].shape
     b_size = ckpt['position_embedding_table.weight'].shape[0]
