@@ -12,8 +12,15 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-EE4C2C.svg)](https://pytorch.org/)
+[![Status](https://img.shields.io/badge/Status-Under%20Active%20Training-orange.svg?style=flat)]()
 [![Architecture](https://img.shields.io/badge/Architecture-Decoder--Only%20GPT-brightgreen.svg)]()
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)]()
+
+> [!IMPORTANT]
+> ### 🚧 Project Status: Under Active Training
+> **V-BOT** is currently undergoing an active training and experimental development phase.
+> * The neural model weights (`model.pt`), vocabulary, and training corpus are actively evolving.
+> * Generated outputs represent ongoing training checkpoints and will continue to improve as loss converges across further iterations.
 
 **V-BOT** is a Decoder-Only Transformer (GPT architecture) built from scratch in PyTorch. It features an autoregressive text generation engine, model training pipelines, and a cyberpunk-styled **Terminal User Interface (TUI)** with real-time character-level token streaming, live telemetry, and automatic model checkpoint hot-reloading.
 

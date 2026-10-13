@@ -99,6 +99,8 @@ def print_header(model_info):
     print(f"{DARK_GRAY}╭─────────────────────────────────────────────────────────────────────────────╮{RESET}")
     print(f"{DARK_GRAY}│{RESET}{info_line} {DARK_GRAY}│{RESET}")
     print(f"{DARK_GRAY}├─────────────────────────────────────────────────────────────────────────────┤{RESET}")
+    print(f"{DARK_GRAY}│{RESET} {YELLOW}{BOLD}🚧 STATUS: UNDER ACTIVE TRAINING{RESET} {MUTED}(Weights & generations are experimental){RESET} {DARK_GRAY}│{RESET}")
+    print(f"{DARK_GRAY}├─────────────────────────────────────────────────────────────────────────────┤{RESET}")
     print(f"{DARK_GRAY}│{RESET} {MUTED}Commands:{RESET} {CYAN}/temp <val>{RESET}  {MUTED}•{RESET}  {CYAN}/tokens <val>{RESET}  {MUTED}•{RESET}  {GREEN}/reload{RESET}  {MUTED}•{RESET}  {CYAN}/clear{RESET}  {MUTED}•{RESET}  {CYAN}/info{RESET}  {MUTED}•{RESET}  {RED}/exit{RESET}   {DARK_GRAY}│{RESET}")
     print(f"{DARK_GRAY}╰─────────────────────────────────────────────────────────────────────────────╯{RESET}")
     print()
@@ -208,6 +210,7 @@ def main():
     clear_screen()
     print_header(model_info)
 
+    print(f"{YELLOW}{BOLD}🚧 NOTICE:{RESET} {MUTED}V-BOT is currently under active training. Outputs are evolving & experimental.{RESET}")
     print(f"{PURPLE}{BOLD}💡 PROMPT TIP:{RESET} {MUTED}V-BOT is a causal autoregressive transformer.{RESET}")
     print(f"{MUTED}Start with phrases like: {CYAN}\"Vishwas AI is \"{MUTED}, {CYAN}\"Trust means \"{MUTED}, or {CYAN}\"To be or not \"{RESET}\n")
 
