@@ -1,0 +1,33 @@
+Vishwas AI is a system built to bring trust to artificial intelligence.
+Trust is not the same as truth. Trust means the output is supported by evidence.
+When a model gives an answer, Vishwas AI checks every single claim.
+If a claim is supported, Vishwas AI marks it as verified.
+If a claim is contradicted, Vishwas AI warns the user.
+Trustworthy artificial intelligence requires verification, validation, and transparency.
+Every deep learning model produces tokens based on learned patterns and statistical associations.
+However, statistical correlation does not guarantee factual validity or logical consistency.
+A reliable reasoning engine must ground its statements in verifiable knowledge sources.
+When an AI assistant generates code or explains complex algorithms, accuracy is essential.
+Verification algorithms examine intermediate reasoning steps to ensure sound deductions.
+If evidence is missing or ambiguous, the model must express appropriate uncertainty.
+By systematically evaluating assertions against ground truth, Vishwas AI creates confidence.
+Trust is built step by step, token by token, through rigorous verification and continuous learning.
+Large language models learn representations of grammar, syntax, and semantics from data.
+Self-attention mechanisms allow every token to look back at previous tokens and build context.
+Multi-head attention enables the network to attend to information from different representation subspaces.
+Feed-forward networks apply non-linear transformations to refine token representations.
+Residual connections and layer normalization stabilize training across deep architectures.
+Through self-supervised next-token prediction, the transformer learns the structure of language.
+Vishwas AI is a system built to bring trust to artificial intelligence.
+Trust is not the same as truth. Trust means the output is supported by evidence.
+When a model gives an answer, Vishwas AI checks every single claim.
+If a claim is supported, Vishwas AI marks it as verified.
+If a claim is contradicted, Vishwas AI warns the user.
+Trustworthy artificial intelligence requires verification, validation, and transparency.
+Every deep learning model produces tokens based on learned patterns and statistical associations.
+A reliable reasoning engine must ground its statements in verifiable knowledge sources.
+When an AI assistant generates code or explains complex algorithms, accuracy is essential.
+Verification algorithms examine intermediate reasoning steps to ensure sound deductions.
+If evidence is missing or ambiguous, the model must express appropriate uncertainty.
+By systematically evaluating assertions against ground truth, Vishwas AI creates confidence.
+Trust is built step by step, token by token, through rigorous verification and continuous learning.
