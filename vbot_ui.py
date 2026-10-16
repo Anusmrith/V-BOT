@@ -18,7 +18,7 @@ import torch.nn as nn
 # pyrefly: ignore [missing-import]
 from torch.nn import functional as F
 
-# Enable Windows ANSI Virtual Terminal Processing
+# Enable Windows ANSI Virtual Terminal Processing and UTF-8 output
 if os.name == 'nt':
     try:
         import ctypes
@@ -28,6 +28,11 @@ if os.name == 'nt':
         kernel32.GetConsoleMode(h_stdout, ctypes.byref(mode))
         mode.value |= 0x0004  # ENABLE_VIRTUAL_TERMINAL_PROCESSING
         kernel32.SetConsoleMode(h_stdout, mode)
+    except Exception:
+        pass
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
     except Exception:
         pass
 
@@ -142,6 +147,10 @@ def load_vbot_model(checkpoint_path="model.pt"):
     
     total_params = sum(p.numel() for p in model.parameters())
     
+    if v_size != vocab_size:
+        print(f"\n{YELLOW}[Notice] Loaded checkpoint vocab ({v_size}) != active BPE tokenizer vocab ({vocab_size}).{RESET}")
+        print(f"{MUTED}Run 'python llm.py' to update model weights to the new BPE vocabulary.{RESET}\n")
+    
     info = {
         "vocab": v_size,
         "embd": embd_dim,
@@ -186,12 +195,27 @@ def stream_vbot_response(model, prompt_text, max_new_tokens=150, temperature=0.7
             next_idx = torch.multinomial(probs, num_samples=1)
             context = torch.cat((context, next_idx), dim=1)
             
+            # Check for special end-of-text token (<|endoftext|>)
+            if next_idx.item() == 256:
+                break
+
             char = decode([next_idx.item()])
+            
+            # Check if generation has started a new user turn
+            accumulated = "".join(generated_chars) + char
+            if "\nUser:" in accumulated or "\n\nUser" in accumulated or "<|endoftext|>" in accumulated:
+                break
+                
             generated_chars.append(char)
             
-            # Real-time stdout stream
-            sys.stdout.write(f"{WHITE}{char}{RESET}")
-            sys.stdout.flush()
+            # Real-time stdout stream with encoding error safety
+            try:
+                sys.stdout.write(f"{WHITE}{char}{RESET}")
+                sys.stdout.flush()
+            except Exception:
+                safe_char = char.encode('ascii', errors='backslashreplace').decode('ascii')
+                sys.stdout.write(f"{WHITE}{safe_char}{RESET}")
+                sys.stdout.flush()
             
             # Subtle visual pacing if generating too fast on GPU
             time.sleep(0.005)
@@ -199,7 +223,12 @@ def stream_vbot_response(model, prompt_text, max_new_tokens=150, temperature=0.7
     elapsed = max(time.time() - start_time, 0.001)
     tok_per_sec = len(generated_chars) / elapsed
     
-    return "".join(generated_chars), len(generated_chars), elapsed, tok_per_sec
+    clean_text = "".join(generated_chars)
+    for stop in ["\nUser:", "\n\nUser:", "<|endoftext|>"]:
+        if stop in clean_text:
+            clean_text = clean_text.split(stop)[0]
+            
+    return clean_text.strip(), len(generated_chars), elapsed, tok_per_sec
 
 def main():
     clear_screen()
@@ -214,7 +243,7 @@ def main():
         return
 
     # Default runtime generation parameters
-    temperature = 0.7
+    temperature = 0.4
     max_tokens  = 160
     top_k       = 10
 
@@ -329,11 +358,21 @@ def main():
 
             # V-BOT Response Box
             print(f"{DARK_GRAY}╭──{RESET} {BOLD}{PURPLE}🤖 V-BOT{RESET} {MUTED}(generating...){RESET}")
-            print(f"{DARK_GRAY}│{RESET} {CYAN}{prompt}{RESET}", end="")
+
+            # Distinguish theatrical dialogue from conversational questions
+            is_theatrical = any(tag in prompt for tag in [":\n", "Citizen:", "ROMEO:", "JULIET:", "HAMLET:", "All:", "BRUTUS:"]) or prompt.endswith(":")
+            if not is_theatrical and not prompt.startswith("User:") and "Assistant:" not in prompt:
+                model_prompt = f"User: {prompt}\nAssistant:"
+                prefix_display = "Assistant: "
+            else:
+                model_prompt = prompt
+                prefix_display = f"{prompt} " if not is_theatrical else ""
+
+            print(f"{DARK_GRAY}│{RESET} {CYAN}{prefix_display}{RESET}", end="")
             
             output, count, duration, tps = stream_vbot_response(
                 model=model,
-                prompt_text=prompt,
+                prompt_text=model_prompt,
                 max_new_tokens=max_tokens,
                 temperature=temperature,
                 top_k=top_k

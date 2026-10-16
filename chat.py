@@ -1,6 +1,17 @@
 
 
 import os
+import sys
+import re
+
+# Ensure UTF-8 console encoding on Windows to prevent charmap UnicodeEncodeErrors
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 # pyrefly: ignore [missing-import]
 import torch
 # pyrefly: ignore [missing-import]
@@ -48,6 +59,9 @@ def load_trained_model(checkpoint_path="model.pt"):
     num_heads = len([k for k in ckpt.keys() if 'blocks.0.sa.heads.' in k and '.key.weight' in k])
     
     print(f"[Model Config] Vocab: {v_size} | Embd: {embd_dim} | Context: {b_size} | Layers: {num_layers} | Heads: {num_heads}")
+    if v_size != vocab_size:
+        print(f"[Notice] Checkpoint vocabulary size ({v_size}) differs from current BPE tokenizer ({vocab_size}).")
+        print("         Run 'python llm.py' to update checkpoint weights to current BPE vocabulary.")
     
     model = GPTLanguageModel(
         vocab_size=v_size,
@@ -61,22 +75,69 @@ def load_trained_model(checkpoint_path="model.pt"):
     model.eval()
     return model
 
-def ask_model(model, prompt_text, max_new_tokens=150, temperature=0.7, top_k=10):
-    """Encodes the user prompt and autoregressively generates the continuation."""
+def ask_model(model, prompt_text, max_new_tokens=150, temperature=0.4, top_k=10, stop_sequences=None, return_full=False):
+    """
+    Encodes the user prompt and autoregressively generates the continuation.
+    Stops generating as soon as a stop sequence (e.g. '\nUser:' or '<|endoftext|>') is reached,
+    preventing the model from generating multiple answers or hallucinating subsequent user questions.
+    """
+    if stop_sequences is None:
+        stop_sequences = ["\nUser:", "\n\nUser:", "<|endoftext|>"]
+
     tokens = encode(prompt_text)
     if len(tokens) == 0:
         tokens = [0]
     
     context = torch.tensor([tokens], dtype=torch.long, device=device)
-    with torch.no_grad():
-        generated_ids = model.generate(
-            context, 
-            max_new_tokens=max_new_tokens, 
-            temperature=temperature, 
-            top_k=top_k
-        )[0].tolist()
+    new_token_ids = []
     
-    return decode(generated_ids)
+    with torch.no_grad():
+        for _ in range(max_new_tokens):
+            idx_cond = context[:, -model.block_size:]
+            logits, _ = model(idx_cond)
+            logits = logits[:, -1, :] / max(temperature, 1e-4)
+            
+            if top_k is not None and top_k > 0:
+                v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
+                logits[logits < v[:, [-1]]] = -float('Inf')
+                
+            probs = F.softmax(logits, dim=-1)
+            next_idx = torch.multinomial(probs, num_samples=1)
+            token_id = next_idx.item()
+            
+            # Stop token check (<|endoftext|>)
+            if token_id == 256:
+                break
+                
+            context = torch.cat((context, next_idx), dim=1)
+            new_token_ids.append(token_id)
+            
+            # Substring stop check
+            curr_text = decode(new_token_ids)
+            if any(stop in curr_text for stop in stop_sequences):
+                break
+            # In conversational mode, also stop if a theatrical character header appears
+            if "\nUser:" in stop_sequences and re.search(r'\n[A-Z]{3,}[\sA-Z]*:', curr_text):
+                break
+
+    answer_text = decode(new_token_ids)
+    for stop in stop_sequences:
+        if stop in answer_text:
+            answer_text = answer_text.split(stop)[0]
+
+    # In conversational mode, truncate at any theatrical character turn
+    if "\nUser:" in stop_sequences:
+        theatrical_match = re.search(r'\n[A-Z]{3,}[\sA-Z]*:', answer_text)
+        if theatrical_match:
+            answer_text = answer_text[:theatrical_match.start()]
+
+    # Clean up excessive newlines or horizontal gaps
+    answer_text = re.sub(r'\n{3,}', '\n\n', answer_text)
+    answer_text = re.sub(r'[ \t]{3,}', ' ', answer_text)
+    answer_text = answer_text.strip()
+    if return_full:
+        return prompt_text + " " + answer_text
+    return answer_text
 
 def main():
     print("=" * 65)
@@ -110,7 +171,7 @@ def main():
                 continue
 
             print("\nGenerating continuation...")
-            output = ask_model(model, prompt, max_new_tokens=150, temperature=0.7)
+            output = ask_model(model, prompt, max_new_tokens=400, temperature=0.7)
             print("-" * 40)
             print(output)
             print("-" * 40)

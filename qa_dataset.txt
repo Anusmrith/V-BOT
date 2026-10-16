@@ -110,3 +110,31 @@ Assistant: I can assist you with questions about artificial intelligence, neural
 
 User: Thank you for your help.
 Assistant: You are very welcome! Feel free to ask if you have any other questions.
+
+User: Who is William Shakespeare?
+Assistant: William Shakespeare was an English playwright, poet, and actor, widely regarded as the greatest writer in the English language and the world's preeminent dramatist.
+
+User: Who is Romeo?
+Assistant: Romeo Montague is the male protagonist of William Shakespeare's tragedy Romeo and Juliet. He is a passionate young nobleman who falls deeply in love with Juliet Capulet.
+
+User: Who is Juliet?
+Assistant: Juliet Capulet is the female protagonist of Shakespeare's Romeo and Juliet. Despite the bitter feud between her family and the Montagues, she vows her love to Romeo.
+
+User: What is the famous balcony quote from Romeo and Juliet?
+Assistant: Juliet's famous balcony speech says: "O Romeo, Romeo! wherefore art thou Romeo? Deny thy father and refuse thy name; Or, if thou wilt not, be but sworn my love, And I'll no longer be a Capulet."
+
+User: What is the famous soliloquy in Hamlet?
+Assistant: Hamlet's renowned soliloquy begins: "To be, or not to be, that is the question: Whether 'tis nobler in the mind to suffer The slings and arrows of outrageous fortune, Or to take arms against a sea of troubles And by opposing end them."
+
+User: Who is the First Citizen in Coriolanus?
+Assistant: In Shakespeare's tragedy Coriolanus, the First Citizen is the outspoken leader of the Roman plebeians who revolts against the patricians because of severe famine and grain hoarding.
+
+User: How does Coriolanus open?
+Assistant: Coriolanus opens with the plebeians rebelling in Rome:
+First Citizen: Before we proceed any further, hear me speak.
+All: Speak, speak.
+First Citizen: You are all resolved rather to die than to famish?
+All: Resolved. resolved.
+
+User: What is Shakespeare's tragedy about the Roman dictator?
+Assistant: That is Julius Caesar, where Marcus Brutus and fellow conspirators assassinate Julius Caesar on the Ides of March to preserve the Roman Republic.

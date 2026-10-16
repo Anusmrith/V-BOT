@@ -19,18 +19,41 @@ from chat import load_trained_model, ask_model
 def main():
     if len(sys.argv) > 1:
         # Combine all command line words into a single prompt string
-        prompt = " ".join(sys.argv[1:]).strip()
+        raw_prompt = " ".join(sys.argv[1:]).strip().replace('\\n', '\n')
     else:
         # Default prompt if none provided
-        prompt = "Vishwas AI is "
+        raw_prompt = "What is your name?"
+
+    # Distinguish between theatrical dialogue prompts and conversational user questions
+    is_theatrical = any(tag in raw_prompt for tag in [":\n", "Citizen:", "ROMEO:", "JULIET:", "HAMLET:", "All:", "BRUTUS:"]) or raw_prompt.endswith(":")
+    
+    if is_theatrical:
+        prompt = raw_prompt
+        stop_seqs = ["<|endoftext|>"]
+        prefix = ""
+    elif not raw_prompt.startswith("User:") and "Assistant:" not in raw_prompt:
+        prompt = f"User: {raw_prompt}\nAssistant:"
+        stop_seqs = ["\nUser:", "\n\nUser:", "<|endoftext|>"]
+        prefix = "Assistant: "
+    else:
+        prompt = raw_prompt
+        stop_seqs = ["\nUser:", "\n\nUser:", "<|endoftext|>"]
+        prefix = "Assistant: " if not prompt.endswith("Assistant:") else ""
 
     model = load_trained_model("model.pt")
     
-    print(f"\n[Prompt]: {prompt}")
-    print("[AI Continuation]:")
+    print(f"\n[Prompt]:\n{prompt.strip()}")
     print("-" * 50)
-    output = ask_model(model, prompt, max_new_tokens=150, temperature=0.7)
-    print(output)
+    answer = ask_model(
+        model, 
+        prompt, 
+        max_new_tokens=150, 
+        temperature=0.4, 
+        top_k=10, 
+        stop_sequences=stop_seqs,
+        return_full=False
+    )
+    print(f"{prefix}{answer}")
     print("-" * 50)
 
 if __name__ == "__main__":

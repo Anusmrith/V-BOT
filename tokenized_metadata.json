@@ -1,0 +1,14 @@
+{
+  "dataset_file": "combined_train.txt",
+  "tokenizer_file": "bpe_tokenizer.json",
+  "vocab_size": 2048,
+  "total_characters": 1298582,
+  "total_bytes": 1298582,
+  "total_tokens": 448015,
+  "train_tokens": 403213,
+  "val_tokens": 44802,
+  "compression_ratio": 2.899,
+  "bytes_per_token": 2.899,
+  "train_split_ratio": 0.9,
+  "timestamp": "2026-10-16 16:00:14"
+}

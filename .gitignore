@@ -20,6 +20,9 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Backup checkpoints
+# Backup and duplicate checkpoints
 model_4m.pt
 *_backup.pt
+model (*).pt
+model_qa_only.pt
+combined_train_tokens.pt
