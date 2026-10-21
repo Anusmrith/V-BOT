@@ -16,6 +16,12 @@ Architectural Overview:
 8. Learning Rate Schedule: Linear Warmup + Cosine Annealing Decay
 9. Gradient Regularization: Gradient Norm Clipping (max_norm=1.0)
 10. Dual-Domain Balanced Training: Prompt-Masked Aligned SFT + Continuous Corpus
+
+[ADVANCED CONFIG v2]
+  - Architecture:  256-dim embeddings | 8 attention heads | 6 transformer layers
+  - Context:       256-token context window (2x previous)
+  - Parameters:    ~4.5M (up from ~1M)
+  - Training:      2000 iterations | LR 1e-3 → 1e-4 cosine | 150-step warmup
 ================================================================================
 """
 
@@ -48,19 +54,19 @@ torch.manual_seed(1337)
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Model dimensions & training configuration
-batch_size    = 16      # Number of independent sequence batches processed in parallel
-block_size    = 128     # Maximum context window length for self-attention (T)
-max_iters     = 600     # Total training iterations (converges in ~2 min on CPU)
-eval_interval = 50      # Frequency of evaluating and logging loss & probability quantification
-learning_rate = 2.0e-3  # Peak tuned learning rate for AdamW (from hyperparameter grid search)
-min_lr        = 2.0e-4  # Minimum learning rate after cosine decay
-warmup_iters  = 40      # Iterations for linear warmup
-weight_decay  = 0.05    # Weight decay for 2D parameter matrices (linear layers and embeddings)
-max_norm      = 1.0     # Gradient norm clipping threshold for gradient descent stability
+batch_size    = 12      # Reduced slightly to accommodate 2x context window on same VRAM
+block_size    = 256     # Context window: 256 tokens (2x previous — richer long-range attention)
+max_iters     = 2000    # Extended training for deeper convergence of the larger model
+eval_interval = 100     # Evaluate every 100 steps (less frequent for longer runs)
+learning_rate = 1.0e-3  # Scaled-down peak LR for larger model (prevents instability)
+min_lr        = 1.0e-4  # Minimum LR after cosine decay
+warmup_iters  = 150     # Longer warmup to stabilize 6-layer network at startup
+weight_decay  = 0.1     # Stronger regularization for the larger 4.5M-param model
+max_norm      = 1.0     # Gradient norm clipping threshold
 eval_iters    = 25      # Number of batches to average loss over during evaluation
-n_embd        = 128     # Embedding dimension (C)
-n_head        = 4       # Number of multi-head attention heads
-n_layer       = 4       # Number of stacked transformer blocks
+n_embd        = 256     # [UPGRADED] Embedding dimension: 128 → 256 (2x richer representations)
+n_head        = 8       # [UPGRADED] Attention heads: 4 → 8 (head_size = 256/8 = 32)
+n_layer       = 6       # [UPGRADED] Transformer blocks: 4 → 6 (deeper reasoning capacity)
 dropout       = 0.1     # Dropout probability for regularization
 
 
@@ -563,8 +569,10 @@ def main():
             break
 
     print("=" * 70)
-    print("INITIALIZING CUSTOM DECODER-ONLY GPT MODEL WITH OPTIMIZER")
+    print("INITIALIZING ADVANCED DECODER-ONLY GPT MODEL [v2 — UPGRADED ARCHITECTURE]")
     print(f"Device: {device.upper()} | PyTorch Version: {torch.__version__}")
+    print(f"Architecture: {n_layer} layers | {n_head} heads | {n_embd}-dim embeddings | {block_size}-token context")
+    print(f"Training:     {iters} iters | LR {learning_rate:.1e} → {min_lr:.1e} cosine | warmup {warmup_iters} steps")
     print("=" * 70)
     
     # Instantiate Model
@@ -576,8 +584,9 @@ def main():
         n_layer=n_layer
     ).to(device)
     total_params = sum(p.numel() for p in model.parameters())
-    print(f"Total Model Parameters: {total_params:,}")
-    print(f"Architecture: {n_layer} layers | {n_head} heads | {n_embd} embedding dim | {block_size} context length")
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"Total Parameters:     {total_params:,}  ({total_params/1e6:.2f}M)")
+    print(f"Trainable Parameters: {trainable_params:,}  ({trainable_params/1e6:.2f}M)")
     
     # Checkpoint resuming: continue training from previous weights if compatible
     checkpoint_path = "model.pt"
